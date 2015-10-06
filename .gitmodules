@@ -1,0 +1,4 @@
+[submodule "gettingandcleaningdata/assignment"]
+	path = gettingandcleaningdata/assignment
+	url = C:\\Dev\\workspaces\\coursera\\datasciencecoursera\\gettingandcleaningdata\\assignment
+	branch = master
