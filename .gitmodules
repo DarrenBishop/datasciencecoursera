@@ -1,9 +1,7 @@
 [submodule "gettingandcleaningdata/assignment"]
 	path = gettingandcleaningdata/assignment
-	url = C:\\Dev\\workspaces\\coursera\\datasciencecoursera\\gettingandcleaningdata\\assignment
-	branch = master
+	url = ./gettingandcleaningdata/assignment
 
 [submodule "exploratory-data-analysis/project1"]
 	path = exploratory-data-analysis/project1
-	url = C:\\Dev\\workspaces\\coursera\\datasciencecoursera\\exploratory-data-analysis\\project1
-	branch = master
+	url = ./exploratory-data-analysis/project1
