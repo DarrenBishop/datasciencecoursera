@@ -6,10 +6,12 @@ readData <- function() {
   
   scc = tbl_df(readRDS("Source_Classification_Code.rds"))
   
-  nei %>% inner_join(scc, by = SCC)
+  nei %>% inner_join(scc, by = "SCC")
 }
 
-dts = readData() %>%
+dt = readData()
+
+dts = dt %>%
   filter(fips == "24510") %>%
   group_by(year) %>%
   summarise(TotalPM2.5 = sum(Emissions))
@@ -22,7 +24,7 @@ xaxis = seq(1999, 2008, by=3)
 
 ylim = with(dts, c(min(TotalPM2.5), max(TotalPM2.5))) / 1e6
 
-yaxis = pretty(seq(yim[1], ylim[2]))
+yaxis = pretty(seq(ylim[1], ylim[2]))
 
 plot(dts$year, dts$TotalPM2.5/1e6, type = "l", axes = F, ylab = "Total PM2.5 (millions)", col = "red")
 title("Total Emissions from PM2.5 in Baltimore City, Maryland")

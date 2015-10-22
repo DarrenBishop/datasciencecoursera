@@ -9,7 +9,9 @@ readDate <- function() {
   nei %>% inner_join(scc, by = SCC)
 }
 
-dts = readData() %>%
+dt = readData()
+
+dts = dt %>%
   group_by(year) %>%
   summarise(TotalPM2.5 = sum(Emissions))
 
