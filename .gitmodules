@@ -1,3 +1,11 @@
+[submodule "getting-and-cleaning-data/assignment"]
+	path = getting-and-cleaning-data/assignment
+	url = git@github.com:DarrenBishop/getting-and-cleaning-data.git
+
 [submodule "exploratory-data-analysis/project1"]
 	path = exploratory-data-analysis/project1
-	url = ./exploratory-data-analysis/project1
+	url = git@github.com:DarrenBishop/ExData_Plotting1.git
+
+[submodule "reproducible-research/assignment1"]
+	path = reproducible-research/assignment1
+	url = git@github.com:DarrenBishop/RepData_PeerAssessment1.git
