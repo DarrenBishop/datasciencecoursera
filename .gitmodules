@@ -1,7 +1,3 @@
-[submodule "gettingandcleaningdata/assignment"]
-	path = gettingandcleaningdata/assignment
-	url = ./gettingandcleaningdata/assignment
-
 [submodule "exploratory-data-analysis/project1"]
 	path = exploratory-data-analysis/project1
 	url = ./exploratory-data-analysis/project1
