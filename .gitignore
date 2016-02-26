@@ -9,6 +9,10 @@
 # RStudio files
 .Rproj.user/
 
+# KnitR files
+figures/
+*cache/
+
 # produced vignettes
 vignettes/*.html
 vignettes/*.pdf
