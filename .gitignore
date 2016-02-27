@@ -17,3 +17,5 @@ figures/
 vignettes/*.html
 vignettes/*.pdf
 rprogramming/week2/assignment/specdata
+reproducible-research/assignment2/rsconnect
+repdata-data-StormData.csv*
