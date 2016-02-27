@@ -1,0 +1,187 @@
+---
+title: "Efficacy of Vitamin-C Delivery Methods on Tooth Growth"
+author: "Darren Bishop (mail@darrenbishop.com)"
+output:
+  pdf_document:
+    fig_caption: yes
+    keep_tex: yes
+  html_document:
+    fig_caption: yes
+    keep_md: yes
+header-includes:
+  - \usepackage{float}
+  - \let\origfigure\figure
+  - \let\endorigfigure\endfigure
+  - \renewenvironment{figure}{\expandafter\origfigure\expandafter[H]}{\endorigfigure}
+---
+
+```{r "Load Libs, Data and Set Options", message=FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(knitr)
+library(UsingR)
+library(gridExtra)
+
+set.seed(221181)
+
+data(ToothGrowth)
+
+opts_chunk$set(message=FALSE, fig.path="figures/", fig.width=10, fig.align = "center")
+```
+
+## Overview
+
+This study analyses the ToothGrowth dataset, which looks at the affect of Vitaming-C dietary supplementation on tooth-growth in Guinea Pigs.  
+
+Through permutation testing I attempt to assess the efficacy of Orange Juice over Ascorbic Acid as a delivery method of Vitamin-C.  
+
+## The Null-Hypothesis
+
+>    There is no difference in the efficacy of Orange Juice over Ascorbic Acid as a develivery method for Vitamin-C
+
+## Assumptions
+
+Here I assume that Vitamin-C does indeed affect tooth-growth and that the difference in tooth-growth, if any, is attributed to the delivery method.  
+
+With respect to the data, I assume that the variance in the population sampled is equal and the distributions generated are Normal Gaussian.  
+
+## Data Processing
+
+First a brief summary of the tooth-growth data
+
+```{r}
+tg.df = tbl_df(ToothGrowth) %>%
+    rename(Supplement = supp, Dose = dose, Length = len) %>%
+    mutate(Dose = factor(sprintf("%.1f", Dose))) %>%
+    group_by(Supplement, Dose)
+
+tg.summary = tg.df %>%
+    summarise(Mean = mean(Length), Median = median(Length), SD = sd(Length))
+
+kable(tg.summary,
+      caption = "Simple summary statistics for tooth-growth, grouped by Supplement and Dose")
+```
+
+```{r, fig.cap="A violin-plot of Tooth Growth Length for each Dose, split by Supplement; the hollow point represents the mean"}
+ggplot(data = inner_join(tg.df, tg.summary), aes(x = Dose, y = Length, fill = Supplement)) +
+    geom_violin(alpha = 0.5) +
+    geom_point(aes(y = Mean, group = Supplement, color = Supplement), shape = 5, size = 2) +
+    geom_line(aes(y = Mean, group = Supplement, color = Supplement)) +
+    ylab(label = "Tooth Growth Length") +
+    xlab(label = "Dose (mg/day)")
+```
+
+Taking this rudimentary anaylsis as an early indicator, it appears that Orange Juice maybe more effective at delivering Vitamnin-C to stimulate tooth-growth, but that becomes unclear at higher dosages.  
+
+## Permutation Tests
+
+To carry out the tests, I separate the observations by dose and establish the efficacy of Orange Juice versus Ascorbic Acid by permuting the delivery method against the fixed tooth-growth length.  
+
+By doing this I am stating my belief that there is no difference between delivery method of Vitamin-C within a given dosage.  
+
+```{r}
+simulations = 10000
+
+permute <- function(dose) {
+    tg.subdata = ToothGrowth %>%
+        filter(dose == dose) %>%
+        mutate(dose = sprintf("%.1f", dose)) %>%
+        unite(treatment, supp, dose)
+    
+    y = tg.subdata[,1]
+    group = as.character(tg.subdata[,2])
+    n = nrow(tg.subdata)
+    
+    oj = sprintf("OJ_%.1f", dose)
+    vc = sprintf("VC_%.1f", dose)
+    
+    print(t.test(y[group == oj] - y[group == vc], paired = F, alternative = "t"))
+    
+    testStat <- function(w, g) mean(w[g == oj]) - mean(w[g == vc])
+    observedStat <- testStat(y, group)
+    permutations <- sapply(1:simulations, function(i) testStat(y, sample(group)))
+    
+    p.mean = mean(permutations)
+    p.value = mean(permutations > observedStat)
+    p.value.adjusted = p.adjust(mean(permutations > observedStat), method = "bonferroni")
+    print(paste("P-value =", p.value, "\\nbonferroni(P-Value) =", p.value.adjusted))
+    p.sd = sd(permutations)
+    
+    p.ci = p.mean + c(-1,1) * qt(.95, n - 2) * p.sd / sqrt(n)
+    
+    plot = ggplot(data = data.frame(permutations = permutations), aes(x = permutations)) +
+        geom_histogram(color = "black", alpha = 0.5, fill = "lightblue") + 
+        geom_vline(aes(xintercept = observedStat), color = "black") +
+        xlab(label = sprintf("Permutations for %.1f mg/day", dose))
+    
+    list(dose = dose, stat = observedStat, permutations = permutations,
+         p.value = p.value, p.sd = p.sd, p.ci = p.ci, plot = plot)
+}
+```
+
+
+```{r, fig.cap="Histograms for the Null-distribution of permutation tests"}
+p0.5 = permute(0.5)
+p1.0 = permute(1.0)
+p2.0 = permute(2.0)
+grid.arrange(p0.5$plot, p1.0$plot, p2.0$plot, ncol=3)
+```
+
+Figure 2. shows the distribution of the 3 permutation tests, each with the corresponding observed test statistic plotted as the black vertical line.  
+
+None of the observed values look very extreme, particularly for the 2.0 mg/day test, where the observed test statistic falls at the centre of the distribution.  
+
+```{r}
+p.summary = data.frame() %>% rbind(
+    with(p0.5, c(sprintf("%.1f", dose), p.value, paste(p.ci, collapse = " to "), stat)),
+    with(p1.0, c(sprintf("%.1f", dose), p.value, paste(p.ci, collapse = " to "), stat)),
+    with(p2.0, c(sprintf("%.1f", dose), p.value, paste(p.ci, collapse = " to "), stat))
+)
+
+kable(p.summary, digits = 4, col.names = c("Dose", "P-value", "Confidence Interval", "Observed Statistic"), caption = "Summary of table containing P-values, Confidence Intervals and Observed Statistics for each Dose")
+```
+
+Table 2. shows P-values favouring the the Null-hypothesis, where I would accept the Null-hypothesis in 2 out 3 cases if I were to set the Type-I error rate $\alpha = 0.05$ and accept the Null-hypothesis in all cases where $\alpha = 0.01$.  
+
+Table 2. also shows the 95% Confidence Intervals i.e. Type-I error rate $\alpha = 0.05$; all intervals contain 0, supporting the posibilty that the delivery methods are equivalent, that is, one is not more effective than the other, thus further supporting the Null-hypothesis.  
+
+## Conclusion
+
+Based on this exploratory analysis and findings, I conclude that the Null-hypothesis is true.  
+
+
+## P-Value Adjustment Example
+
+```{r}
+require(graphics)
+
+set.seed(123)
+x <- rnorm(50, mean = c(rep(0, 25), rep(3, 25)))
+p <- 2*pnorm(sort(-abs(x)))
+
+round(p, 3)
+round(p.adjust(p), 3)
+round(p.adjust(p, "BH"), 3)
+
+## or all of them at once (dropping the "fdr" alias):
+p.adjust.M <- p.adjust.methods[p.adjust.methods != "fdr"]
+p.adj    <- sapply(p.adjust.M, function(meth) p.adjust(p, meth))
+p.adj.60 <- sapply(p.adjust.M, function(meth) p.adjust(p, meth, n = 60))
+stopifnot(identical(p.adj[,"none"], p), p.adj <= p.adj.60)
+round(p.adj, 3)
+## or a bit nicer:
+noquote(apply(p.adj, 2, format.pval, digits = 3))
+
+
+## and a graphic:
+matplot(p, p.adj, ylab="p.adjust(p, meth)", type = "l", asp = 1, lty = 1:6,
+        main = "P-value adjustments")
+legend(0.7, 0.6, p.adjust.M, col = 1:6, lty = 1:6)
+
+## Can work with NA's:
+pN <- p; iN <- c(46, 47); pN[iN] <- NA
+pN.a <- sapply(p.adjust.M, function(meth) p.adjust(pN, meth))
+## The smallest 20 P-values all affected by the NA's :
+round((pN.a / p.adj)[1:20, ] , 4)
+```
