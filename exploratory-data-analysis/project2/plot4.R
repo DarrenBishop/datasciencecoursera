@@ -10,7 +10,7 @@ readData <- function() {
   nei %>% inner_join(scc, by = "SCC")
 }
 
-dt = readData()
+#dt = readData()
 
 dts = dt %>% filter(grepl("Coal", EI.Sector)) %>% group_by(EI.Sector, year) %>% summarise(TotalPM2.5 = sum(Emissions))
 
