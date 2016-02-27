@@ -9,7 +9,7 @@ readData <- function() {
   nei %>% inner_join(scc, by = "SCC")
 }
 
-dt = readData()
+#dt = readData()
 
 dts = dt %>%
   filter(fips == "24510") %>%
@@ -22,11 +22,11 @@ par(pin = c(5, 5), mar = c(3, 5, 3, 1))
 
 xaxis = seq(1999, 2008, by=3)
 
-ylim = with(dts, c(min(TotalPM2.5), max(TotalPM2.5))) / 1e6
+ylim = with(dts, c(min(TotalPM2.5), max(TotalPM2.5)))
 
-yaxis = pretty(seq(ylim[1], ylim[2]))
+yaxis = pretty(seq(ylim[1], ylim[2], length.out = 6) / 1e3)
 
-plot(dts$year, dts$TotalPM2.5/1e6, type = "l", axes = F, ylab = "Total PM2.5 (millions)", col = "red")
+plot(dts$year, dts$TotalPM2.5 / 1e3, type = "l", axes = F, ylab = "Total PM2.5 (thousands)", col = "red")
 title("Total Emissions from PM2.5 in Baltimore City, Maryland")
 axis(side = 1, at = xaxis)
 axis(side = 2, at = yaxis)

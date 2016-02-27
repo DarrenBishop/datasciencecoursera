@@ -1,12 +1,12 @@
 library(dplyr)
 
-readDate <- function() {
+readData <- function() {
   
   nei = tbl_df(readRDS("summarySCC_PM25.rds"))
   
   scc = tbl_df(readRDS("Source_Classification_Code.rds"))
   
-  nei %>% inner_join(scc, by = SCC)
+  nei %>% inner_join(scc, by = "SCC")
 }
 
 dt = readData()

@@ -10,7 +10,7 @@ readData <- function() {
   nei %>% inner_join(scc, by = "SCC")
 }
 
-dt = readData()
+#dt = readData()
 
 fips_name = c("24510" = "Baltimore City", "06037" = "Los Angeles County")
 
