@@ -1,4 +1,3 @@
-[submodule "gettingandcleaningdata/assignment"]
-	path = gettingandcleaningdata/assignment
-	url = C:\\Dev\\workspaces\\coursera\\datasciencecoursera\\gettingandcleaningdata\\assignment
-	branch = master
+[submodule "getting-and-cleaning-data/assignment"]
+	path = getting-and-cleaning-data/assignment
+	url = git@github.com:DarrenBishop/getting-and-cleaning-data.git
