@@ -70,25 +70,24 @@ img {
 
 <div id="question-1" class="section level2">
 <h2>Question 1</h2>
-<pre class="r"><code>mtcars$cyl = factor(mtcars$cyl)
-
-coef(lm(data = mtcars, mpg ~ cyl + wt))[3]</code></pre>
-<pre><code>##     cyl8 
-## -6.07086</code></pre>
+<pre class="r"><code>coef(lm(data = mtcars, mpg ~ factor(cyl) + wt))[3]</code></pre>
+<pre><code>## factor(cyl)8 
+##     -6.07086</code></pre>
 <p><strong><em>Answer:</em></strong> -6.07086</p>
 </div>
 <div id="question-2" class="section level2">
 <h2>Question 2</h2>
-<pre class="r"><code>coef(lm(data = mtcars, mpg ~ cyl))[3]</code></pre>
-<pre><code>##      cyl8 
-## -11.56364</code></pre>
+<pre class="r"><code>cars.lm2 = lm(data = mtcars, mpg ~ factor(cyl))
+coef(cars.lm2)[3]</code></pre>
+<pre><code>## factor(cyl)8 
+##    -11.56364</code></pre>
 <p><strong><em>Answer:</em></strong> The model is biased towards cyl, that is, adjusting and holding weight constant shows cyl has less impact coefficient is closer to zero.</p>
 </div>
 <div id="question-3" class="section level2">
 <h2>Question 3</h2>
-<pre class="r"><code>fit1 = lm(data = mtcars, mpg ~ cyl + wt)
+<pre class="r"><code>fit1 = lm(data = mtcars, mpg ~ factor(cyl) + wt)
 
-fit2 = update(fit1, mpg ~ cyl + wt + cyl * wt)
+fit2 = update(fit1, mpg ~ factor(cyl) + wt + factor(cyl) * wt)
 
 summary(anova(fit1, fit2))</code></pre>
 <pre><code>##      Res.Df          RSS              Df      Sum of Sq    
@@ -111,42 +110,21 @@ summary(anova(fit1, fit2))</code></pre>
 </div>
 <div id="question-4" class="section level2">
 <h2>Question 4</h2>
-<pre class="r"><code>summary(lm(mpg ~ wt + cyl, data = mtcars))</code></pre>
+<pre class="r"><code>summary(lm(mpg ~ I(wt * 0.5) + factor(cyl), data = mtcars))</code></pre>
 <pre><code>## 
 ## Call:
-## lm(formula = mpg ~ wt + cyl, data = mtcars)
+## lm(formula = mpg ~ I(wt * 0.5) + factor(cyl), data = mtcars)
 ## 
 ## Residuals:
 ##     Min      1Q  Median      3Q     Max 
 ## -4.5890 -1.2357 -0.5159  1.3845  5.7915 
 ## 
 ## Coefficients:
-##             Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)  33.9908     1.8878  18.006  &lt; 2e-16 ***
-## wt           -3.2056     0.7539  -4.252 0.000213 ***
-## cyl6         -4.2556     1.3861  -3.070 0.004718 ** 
-## cyl8         -6.0709     1.6523  -3.674 0.000999 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Residual standard error: 2.557 on 28 degrees of freedom
-## Multiple R-squared:  0.8374, Adjusted R-squared:   0.82 
-## F-statistic: 48.08 on 3 and 28 DF,  p-value: 3.594e-11</code></pre>
-<pre class="r"><code>summary(lm(mpg ~ I(wt * 0.5) + cyl, data = mtcars))</code></pre>
-<pre><code>## 
-## Call:
-## lm(formula = mpg ~ I(wt * 0.5) + cyl, data = mtcars)
-## 
-## Residuals:
-##     Min      1Q  Median      3Q     Max 
-## -4.5890 -1.2357 -0.5159  1.3845  5.7915 
-## 
-## Coefficients:
-##             Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)   33.991      1.888  18.006  &lt; 2e-16 ***
-## I(wt * 0.5)   -6.411      1.508  -4.252 0.000213 ***
-## cyl6          -4.256      1.386  -3.070 0.004718 ** 
-## cyl8          -6.071      1.652  -3.674 0.000999 ***
+##              Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)    33.991      1.888  18.006  &lt; 2e-16 ***
+## I(wt * 0.5)    -6.411      1.508  -4.252 0.000213 ***
+## factor(cyl)6   -4.256      1.386  -3.070 0.004718 ** 
+## factor(cyl)8   -6.071      1.652  -3.674 0.000999 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
