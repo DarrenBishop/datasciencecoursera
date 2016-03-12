@@ -1,6 +1,7 @@
 ---
-title: "Analysis of Automatic vs. Manual Transmission on MPG Performance"
+title: "Analysis of Automatic vs. Manual Transmission Affect on MPG"
 author: "mail@darrenbishop.com"
+date: "28 February 2016"
 output: 
   pdf_document:
     fig_caption: yes
@@ -20,7 +21,6 @@ header-includes:
 library(knitr)
 library(dplyr)
 library(ggplot2)
-library(UsingR)
 library(gridExtra)
 library(car)
 
@@ -30,14 +30,13 @@ opts_chunk$set(message=FALSE, cache=TRUE)
 
 ## Executive Summary
 
-This analysis looks at the affect of the transmission of a car i.e. automatic vs. manual, on the miles-per-gallon performance, to answer the questions:
+This analysis aimed to answer the question of which transmission, automatic or manual, is better for mpg performance of cars, quantifying and validating any difference.  
 
-* Is an automatic or manual transmission better for MPG
-* Quantify the MPG difference between automatic and manual transmissions
+The analysis suggests the choice of automatic vs. manual transmission has ___no significant___ affect on mpg performance.  
 
-The analysis suggests that the choice of automatic vs. manual transmission has marginal bearing on the mpg performance, with only ___0.15 mpg difference in favour of manual-transmission___.  
+Despite a ___0.15 mpg difference in favour of manual-transmission___, the ___`r sprintf("%.4g to %.4g", -2.517734, 2.817941)` confidence interval is centred at 0-zero___, strongly suggesting there is no effect.  
 
-Two significant covariates were identified:
+Two significant covariates were identified, both having confidence interval wholly below 0-zero:
 
 Weight
 : A continuous variable; a one unit change representing 1000 lbs
@@ -49,11 +48,11 @@ No. of Cylinders
 : An 8 cylinder engine reduces MPG performace by 6.08 mpg, compared to a 4 cylinder engine
 : An 8 cylinder engine reduces MPG performace by 1.82 mpg, compared to a 6 cylinder engine
 
+___If buying from a similar set of cars i.e. having the same no. of cylinders, pick the lighter one to get better MPG performance!___  
+
 ## Exploratory Data Analysis
 
-The documentation for the `mtcars` dataset (see Aappendix) reveals that the `vs` and `am` variables are binary and `cyl`, `gear` and `carb` variables are discrete; they can all thus be represented as a factor variables.  
-
-While re-labelling `vs` and `am`, we take this opportunity to rename them to `engine` and `trans`, respectively.   
+The documentation for the `mtcars` dataset (see Aappendix) reveals that the `vs` and `am` variables are binary and `cyl`, `gear` and `carb` variables are discrete; they can all thus be represented as factor variables.  
 
 ```{r, echo = F}
 data(mtcars)
@@ -68,15 +67,15 @@ cars.dt = tbl_dt(mtcars) %>%
     dplyr::select(car, mpg, trans, engine, mpg:carb, -am, -vs)
 ```
 
-Table 1. of the Appedix shows a subset of the `mtcars` data with engine (`engine`) and transmission (`trans`) presented with self-explanatory levels.  
+`vs` and `am` are re-labelled and also renamed to `engine` and `trans`, respectively; Table 2. of the Appedix shows a subset of the `mtcars` data with engine (`engine`) and transmission (`trans`) presented with self-describing levels.  
 
-Figure 1. of the Appendix shows a rudimentary analysis, capturing the distribution of cars' `mpg` performance, grouped by transmission.  
+Figure 1. of the Appendix shows a preliminary analysis, capturing the distribution of cars' `mpg` performance, grouped by transmission.  
 
 It appears that more than 75% of automatic cars get less than 20 mpg, while more than 75% of manual cars perform better than 20 mpg, suggesting manual cars are better for fuel efficiency.  
 
 ## Model Design
 
-Based on what we know about cars, the available variables can be placed into two groups, _performance metrics_ and _mechanical properties_, which in statistics terms translates to _response_ and _regressor_ variables, respectively.  
+Considering how cars are constructed and what they are used for, the available variables can be placed into two groups, _performance metrics_ and _mechanical properties_, which in statistics terms translates to _response_ and _regressor_ variables, respectively.  
 
 Performance Metrics
 : `mpg`, `hp` and `qsec`
@@ -84,7 +83,7 @@ Performance Metrics
 
 Mechanical Properties
 : `cyl`, `disp`, `drat`, `wt`, `engine`, `trans`, `gear` and `carb`
-: Intuition: these are structural aspects to be built into a car, analogous to the # of bedrooms in a house
+: Intuition: these are structural aspects to be built into a car, analogous to the no. of bedrooms built into a house
 
 Any correlation between _performance metrics_ would likely be correlated and confounded by one of the _mechanical properties_.
 
@@ -92,7 +91,7 @@ Thus for the sake of parsimony and simplified design, this analysis disregards a
 
 ### ANOVA Testing
 
-Table 2. of the Appendix shows the results of running the _mechanical properties_ through a step-wise-inclusion Analysis of Variance test; 0.05 Type-I Error rate is used for determining significance:
+Table 3. of the Appendix shows the results of running the _mechanical properties_ through a step-wise-inclusion Analysis of Variance test; 0.05 Type-I Error rate is used for determining significance:
 
 Model 1.
 : contains the regressor of interest, transmission (`trans`)
@@ -115,9 +114,9 @@ With so few regressor variables as candidates for inclusion, there is the risk o
 
 ### Variance Inflation Factor Analysis
 
-Tables 3. and 4. of the Appendix shows the result of VIF anaylsis, where all 8 _mechanical properties_ and just the 3 candidate variables (`trans`, `wt` and `cyl`) are included, respectively.  
+Tables 4. and 5. of the Appendix shows the result of VIF anaylsis, where all 8 _mechanical properties_ and just the 3 candidate variables (`trans`, `wt` and `cyl`) are included, respectively.  
 
-Table 3. shows large standard error inflation across the board, suggesting the presence of strongly correlated regressors; Table 4. shows much diminished standard error inflation in comparison for `trans`, `wt` and `cyl`.  
+Table 4. shows large standard error inflation across the board, suggesting the presence of strongly correlated regressors; Table 5. shows much diminished standard error inflation in comparison for `trans`, `wt` and `cyl`.  
 
 ### Regression Diagnostics
 
@@ -125,17 +124,21 @@ To support the selection of `trans`, `wt` and `cyl` as regressor variables, Figu
 
 ## Data Interpretation
 
-With these _ANOVA Test_ findings, validated by the _Variance Inflation Factor Analysis_ and _Regression Diagnostics_, the final model and coefficients are:
+With these _ANOVA Test_ findings, validated by the _Variance Inflation Factor Analysis_ and _Regression Diagnostics_, the final model is:
 
-$$ \Huge mpg \sim trans + wt + cyl $$
+$$ Model: mpg \sim trans + wt + cyl $$
 
 ```{r, echo = F}
-kable(setNames(data.frame(coef(cars.model)), c("Coefficients")))
+cars.stats = data.frame(coef(cars.model)) %>%
+    rename(Coefficients = coef.cars.model.) %>%
+    cbind(confint(cars.model))
+
+kable(cars.stats, caption = "Coefficients and 95% Confidence Intervals")
 ```
 
-Knowing that both `trans` and `cyl` are factors of 2 and 3 levels each, respectively, we expect 6 parallel regression lines i.e. 6 different intercepts, all with the same slope determined by the coefficient of `wt`.  
+Knowing that both `trans` and `cyl` are factors of 2 and 3 levels each, respectively, 4 parallel regression lines are expected i.e. 4 different intercepts, all with the same slope determined by the coefficient of `wt`; note that the first represents automatic with 4 cylinders.    
 
-As shown above, the model has an intercept of 33.7535920, which represents cars with automatic transmission and 4 cylinder engines.  
+Table 1. shows a model intercept of 33.7535920, which as mentioned, represents cars with automatic transmission and 4 cylinder engines.  
 
 ___According to this model, the difference in switching from an automatic to a manual transission car, also with a 4 cylinder engine, is merely an extra 0.15 mpg___
 
@@ -145,16 +148,28 @@ It is intuitive that, while all other variables are kept the same, a heavier veh
 
 ## Conclusions
 
-The analysis suggests that the choice of automatic vs. manual transmission is somewhat moot, having a marginal effect on mpg performance.  
+This analysis shows the choice of automatic vs. manual is somewhat moot, where the 95% confidence interval contains 0-zero i.e. likely no effect on mpg.  
 
-This finding contradicts the early analysis, which suggested that manual cars exhibited far superior mpg performance.
-The deeper analysis shows that there are stronger covariates than transmission in the mtcars data-set, that better explain the variance in mpg.  
+This finding contradicts the preliminary analysis, which suggested that manual cars exhibited far superior mpg performance.  
 
-___If say, deciding to buy from a similar set of cars i.e. having the same number of cylinders, pick the lighter one to get better MPG performance!___  
+The deeper analysis shows there are stronger covariates than transmission e.g. weight and # of cylinders, that better explain the variance in mpg.  
+
+```{r, results = 'asis', echo = FALSE}
+cat("\\pagebreak")
+```
 
 ## Appendix
 
 ```{r, include = F}
+indicate.significance <- Vectorize(function(pvalue) {
+    if (is.na(pvalue)) ""
+    else if (pvalue <= 0.001) "***"
+    else if (pvalue <= 0.01) "**"
+    else if (pvalue <= 0.05) "*"
+    else if (pvalue <= 0.1) "."
+    else ""
+})
+
 vif.table <- function (model) {
   model.vif = rbind(
       t(vif(model)[,1]),
@@ -164,18 +179,6 @@ vif.table <- function (model) {
   kable(model.vif, caption = "Variance and Standard Deviation Inflation Factors")
 }
 ```
-
-### Criteria Checklist
-
-1. ~~Did the student interpret the coefficients correctly?~~
-1. ~~Did the student do some exploratory data analyses?~~
-1. ~~Did the student fit multiple models and detail their strategy for model selection?~~
-1. ~~Did the student answer the questions of interest or detail why the question(s) is (are) not answerable?~~
-1. ~~Did the student do a residual plot and some diagnostics?~~
-1. Did the student quantify the uncertainty in their conclusions and/or perform an inference correctly?
-1. ~~Was the report brief (about 2 pages long) for the main body of the report and no longer than 5 with supporting appendix of figures?~~
-1. ~~Did the report include an executive summary?~~
-1. ~~Was the report done in Rmd (knitr)?~~
 
 ### `mtcars` Documentation Excerpt
 
@@ -199,7 +202,7 @@ _V/S_ (`vs`) is taken to mean _V-Shape_ or _Straight_ engine; to be consistent w
 
 ```{r, echo = F}
 kable(head(cars.dt),
-      caption = "Sample `mtcars` data after the renaming and re-labelling of the transmission variable.")
+      caption = "`mtcars` sample, with renamed and relabelled engine and trans.")
 ```
 
 ### Exploratory Analysis Plots
@@ -230,11 +233,15 @@ cars.models = list(
 
 cars.anova = do.call(anova, cars.models)
 cars.anova.heading <- strsplit(split = "\n", attr(cars.anova, "heading")[2])
-cars.anova.models = tbl_df(data.frame(cars.anova.heading)) %>%
+cars.anova.models = data.frame(cars.anova.heading) %>%
     setNames("Formula") %>%
-    mutate(Formula = sub("Model \\d+: ", "", Formula, perl = T)) %>%
-    add_rownames(var = "Model")
-kable(cbind(cars.anova.models, cars.anova), caption = "ANOVA Test of the 8 _Mechanical Properties_")
+    add_rownames(var = "Model") %>%
+    cbind(cars.anova) %>%
+    mutate(
+        Formula = sub("Model \\d+: ", "", Formula, perl = T),
+        " " = indicate.significance(`Pr(>F)`)
+    )
+kable(cbind(cars.anova.models), caption = "ANOVA Test of the 8 _Mechanical Properties_")
 ```
 
 ### Variance Inflation Factor Analysis Tables
