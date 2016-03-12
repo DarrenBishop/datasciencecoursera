@@ -8,9 +8,8 @@ output: html_document
 ## Question 1
 
 ```{r}
-mtcars$cyl = factor(mtcars$cyl)
-
-coef(lm(data = mtcars, mpg ~ cyl + wt))[3]
+cars.lm1 <- lm(data = mtcars, mpg ~ factor(cyl) + wt)
+coef(cars.lm1)[3]
 ```
 
 ***Answer:*** -6.07086
@@ -18,17 +17,20 @@ coef(lm(data = mtcars, mpg ~ cyl + wt))[3]
 ## Question 2
 
 ```{r}
-coef(lm(data = mtcars, mpg ~ cyl))[3]
+cars.lm2 = lm(data = mtcars, mpg ~ factor(cyl))
+cars.lm2w = lm(data = mtcars, mpg ~ factor(cyl) + wt)
+coef(cars.lm2)[3]
+coef(cars.lm2w)[3]
 ```
 
-***Answer:*** The model is biased towards cyl, that is, adjusting and holding weight constant shows cyl has less impact coefficient is closer to zero.  
+***Answer:*** Holding weight constant, cylinder appears to have less of an impact on mpg than if weight is disregarded.  
 
 ## Question 3
 
 ```{r}
-fit1 = lm(data = mtcars, mpg ~ cyl + wt)
+fit1 = lm(data = mtcars, mpg ~ factor(cyl) + wt)
 
-fit2 = update(fit1, mpg ~ cyl + wt + cyl * wt)
+fit2 = update(fit1, mpg ~ factor(cyl) + wt + factor(cyl) * wt)
 
 summary(anova(fit1, fit2))
 ```
@@ -38,12 +40,11 @@ summary(anova(fit1, fit2))
 ## Question 4
 
 ```{r}
-summary(lm(mpg ~ wt + cyl, data = mtcars))
-
-summary(lm(mpg ~ I(wt * 0.5) + cyl, data = mtcars))
+cars.lm4 <- lm(mpg ~ I(wt) + factor(cyl), data = mtcars)
+summary(cars.lm4)$coef
 ```
 
-***Answer:*** The estimated expected change in MPG per half ton increase in weight for a specific number of cylinders (4, 6, 8).
+***Answer:*** The estimated expected change in MPG per ton increase in weight for a specific number of cylinders (4, 6, 8).
 
 ## Question 5
 
