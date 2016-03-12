@@ -1,0 +1,13 @@
+---
+title: "Quiz 4"
+author: "mail@darrenbishop.com"
+date: "25 February 2016"
+output: html_document
+---
+
+## Question 1
+
+```{r}
+```
+
+***Answer:*** 

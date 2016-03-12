@@ -1,0 +1,72 @@
+---
+title: "Quiz 3"
+author: "mail@darrenbishop.com"
+date: "25 February 2016"
+output: html_document
+---
+
+## Question 1
+
+```{r}
+mtcars$cyl = factor(mtcars$cyl)
+
+coef(lm(data = mtcars, mpg ~ cyl + wt))[3]
+```
+
+***Answer:*** -6.07086
+
+## Question 2
+
+```{r}
+coef(lm(data = mtcars, mpg ~ cyl))[3]
+```
+
+***Answer:*** The model is biased towards cyl, that is, adjusting and holding weight constant shows cyl has less impact coefficient is closer to zero.  
+
+## Question 3
+
+```{r}
+fit1 = lm(data = mtcars, mpg ~ cyl + wt)
+
+fit2 = update(fit1, mpg ~ cyl + wt + cyl * wt)
+
+summary(anova(fit1, fit2))
+```
+
+***Answer:*** P-value is larger than a 0.05 Type-I Error rate, thus the interaction term is not necessary
+
+## Question 4
+
+```{r}
+summary(lm(mpg ~ wt + cyl, data = mtcars))
+
+summary(lm(mpg ~ I(wt * 0.5) + cyl, data = mtcars))
+```
+
+***Answer:*** The estimated expected change in MPG per half ton increase in weight for a specific number of cylinders (4, 6, 8).
+
+## Question 5
+
+```{r}
+x = c(0.586, 0.166, -0.042, -0.614, 11.72)
+y = c(0.549, -0.026, -0.127, -0.751, 1.344)
+
+hatvalues(lm(y ~ x))
+```
+
+***Answer:*** 0.9946
+
+## Question 6
+
+```{r}
+x = c(0.586, 0.166, -0.042, -0.614, 11.72)
+y = c(0.549, -0.026, -0.127, -0.751, 1.344)
+
+dfbetas(lm(y ~ x))
+```
+
+***Answer:*** -134
+
+## Question 7
+
+***Answer:*** It is possible for the coefficient to reverse sign after adjustment. For example, it can be strongly significant and positive before adjustment and strongly significant and negative after adjustment.
