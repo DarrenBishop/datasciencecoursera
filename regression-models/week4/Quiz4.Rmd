@@ -5,9 +5,73 @@ date: "25 February 2016"
 output: html_document
 ---
 
+library(MASS)
+data(shuttle)
+
 ## Question 1
 
 ```{r}
+shuttle$useNum = 1 * (shuttle$use == 'auto')
+shuttle1.glm = glm(useNum ~ wind - 1, data = shuttle, family = binomial)
+summary(shuttle1.glm)$coef
+e = exp(summary(shuttle1.glm)$coef)
+round(e[1] / e[2], 3)
 ```
 
-***Answer:*** 
+***Answer:*** 0.969 
+
+## Question 2
+
+```{r}
+shuttle$useNum = 1 * (shuttle$use == 'auto')
+shuttle2.glm = glm(useNum ~ wind + magn - 1, data = shuttle, family = binomial)
+summary(shuttle2.glm)$coef
+e = exp(summary(shuttle2.glm)$coef)
+round(e[1] / e[2], 4)
+```
+
+***Answer:*** 0.968
+
+## Question 3
+
+```{r}
+shuttle$useNum = 1 * (shuttle$use == 'auto')
+summary(glm(useNum ~ wind + magn - 1, data = shuttle, family = binomial))$coef
+summary(glm(1 - useNum ~ wind + magn - 1, data = shuttle, family = binomial))$coef
+```
+
+***Answer:*** Coefficients' signs reverse
+
+## Question 4
+
+```{r}
+data(InsectSprays)
+sprays1.glm = glm(count ~ spray - 1, data = InsectSprays, family = poisson)
+summary(sprays1.glm)$coef
+e = exp(summary(sprays1.glm)$coef)
+round(e[1] / e[2], 4)
+```
+
+***Answer:*** 0.9457
+
+## Question 5
+
+Adding log(...) offsets cause no change in the coefficients of the linear component of the model.  
+
+***Answer:*** The coefficient estimate is unchanged
+
+## Question 6
+
+```{r}
+x = -5:5
+y = c(5.12, 3.93, 2.67, 1.87, 0.52, 0.08, 0.93, 2.05, 2.54, 3.87, 4.97)
+knots = c(0)
+spline.terms = sapply(knots, function(knot) (x > knot) * (x - knot))
+xMat = cbind(1, x, spline.terms)
+yhat = predict(lm(y ~ xMat - 1))
+plot(x, y, frame = FALSE, pch = 21, bg = 'lightblue', cex = 2)
+lines(x, yhat, col = 'red', lwd = 2)
+slope = sum(lm(y ~ xMat - 1)$coef[2:3])
+```
+
+***Answer:*** 1.013
