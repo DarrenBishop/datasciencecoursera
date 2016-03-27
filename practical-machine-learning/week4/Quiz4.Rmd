@@ -1,0 +1,234 @@
+---
+title: "Quiz4"
+author: "mail@darrenbishop.com"
+date: "26 March 2016"
+output:
+  html_document:
+    fig_caption: yes
+    keep_md: yes
+header-includes:
+  - \usepackage{float}
+  - \let\origfigure\figure
+  - \let\endorigfigure\endfigure
+  - \renewenvironment{figure}{\expandafter\origfigure\expandafter[H]}{\endorigfigure}
+---
+
+```{r Set Options and Libs, message=FALSE}
+library(knitr)
+library(ggplot2)
+library(ggdendro)
+library(gridExtra)
+library(rpart.plot)
+library(Hmisc)
+library(caret)
+
+opts_chunk$set(message=FALSE, warning = FALSE, fig.path="figures/", fig.width=10, fig.align = "center")
+```
+
+## Question 1
+
+> Load the vowel.train and vowel.test data sets:
+
+```{r}
+library(ElemStatLearn)
+
+data(vowel.train)
+data(vowel.test)
+```
+
+> Set the variable y to be a factor variable in both the training and test set.
+> Then set the seed to 33833.
+> Fit (1) a random forest predictor relating the factor variable y to the remaining variables and (2) a boosted predictor using the "gbm" method.
+> Fit these both with the train() command in the caret package.
+
+```{r}
+vowel.train$y = as.factor(vowel.train$y)
+vowel.test$y = as.factor(vowel.test$y)
+
+vowel.data = rbind(vowel.train, vowel.test)
+
+set.seed(33833)
+# rfModel = randomForest(y ~ ., data = vowel.train, proximity = TRUE)
+rfModel = train(y ~ ., data = vowel.train, method = "rf", proximity = TRUE)
+gbmModel = train(y ~ ., data = vowel.train, method = "gbm", verbose = FALSE)
+```
+
+> What are the accuracies for the two approaches on the test data set?
+> What is the accuracy among the test set samples where the two methods agree?
+
+```{r}
+rfPred = predict(rfModel, newdata = vowel.test)
+gbmPred = predict(gbmModel, newdata = vowel.test)
+
+confusionMatrix(rfPred, vowel.test$y)
+confusionMatrix(gbmPred, vowel.test$y)
+confusionMatrix(rfPred, gbmPred)
+```
+
+***Answer:***
+
+> RF Accuracy = 0.6082
+> 
+> GBM Accuracy = 0.5152
+> 
+> Agreement Accuracy = 0.6361
+
+### Question 2
+
+> Load the Alzheimer's data using the following commands
+
+```{r}
+library(caret)
+library(gbm)
+set.seed(3433)
+library(AppliedPredictiveModeling)
+data(AlzheimerDisease)
+adData = data.frame(diagnosis,predictors)
+
+inTrain = createDataPartition(adData$diagnosis, p = 3/4)[[1]]
+training = adData[ inTrain,]
+testing = adData[-inTrain,]
+```
+
+> Set the seed to 62433 and predict diagnosis with all the other variables using a random forest ("rf"), boosted trees ("gbm") and linear discriminant analysis ("lda") model.
+> Stack the predictions together using random forests ("rf").
+> What is the resulting accuracy on the test set? Is it better or worse than each of the individual predictions?
+
+```{r}
+set.seed(62433)
+# rfModel = train(diagnosis ~ ., data = training, method = "rf", number = 3, proximity = TRUE)
+rf2Model = train(diagnosis ~ ., data = training, method = "rf", number = 3, trControl = trainControl(method = "cv"), proximity = TRUE)
+gbmModel = train(diagnosis ~ ., data = training, method = "gbm", verbose = FALSE)
+ldaModel = train(diagnosis ~ ., data = training, method = "lda", verbose = FALSE)
+
+m.vote <- function(n, p) {
+    m = n %/% 2 + 1
+    terms = sapply(m:n, function(k) choose(n, k) * p^(k) * (1-p)^(n-k))
+    sum(terms)
+}
+
+rfPred = predict(rf2Model, testing)
+gbmPred = predict(gbmModel, testing)
+ldaPred = predict(ldaModel, testing)
+
+stackData = data.frame(rfPred, gbmPred, ldaPred, diagnosis = testing$diagnosis)
+
+stackModel = train(diagnosis ~ ., data = stackData, method = "rf", number = 3, proximity = TRUE)
+stackPred = predict(stackModel, testing)
+
+confusionMatrix(rfPred, testing$diagnosis)$overall['Accuracy']
+confusionMatrix(gbmPred, testing$diagnosis)$overall['Accuracy']
+confusionMatrix(ldaPred, testing$diagnosis)$overall['Accuracy']
+confusionMatrix(stackPred, testing$diagnosis)$overall['Accuracy']
+```
+
+***Answer:***
+
+> Stacked Accuracy: 0.80 is better than random forests and lda and the same as boosting.
+
+### Question 3
+
+> Load the concrete data with the commands:
+
+```{r}
+set.seed(3523)
+library(AppliedPredictiveModeling)
+data(concrete)
+
+inTrain = createDataPartition(concrete$CompressiveStrength, p = 3/4)[[1]]
+training = concrete[ inTrain,]
+testing = concrete[-inTrain,]
+```
+
+> Set the seed to 233 and fit a lasso model to predict Compressive Strength.
+> Which variable is the last coefficient to be set to zero as the penalty increases?
+> (Hint: it may be useful to look up ?plot.enet).
+
+```{r}
+set.seed(233)
+model = train(CompressiveStrength ~ ., data = concrete, method = "lasso")
+summary(model$finalModel)
+plot(model$finalModel)
+```
+
+***Answer:***
+
+> Cement
+
+### Question 4
+
+> Load the data on the number of visitors to the instructors blog from here:
+
+```{r}
+library(forecast)
+library(lubridate) # For year() function below
+
+if (!file.exists("gaData.csv")) {
+    download.file("https://d396qusza40orc.cloudfront.net/predmachlearn/gaData.csv", destfile = "gaData.csv")
+}
+dat = read.csv("gaData.csv")
+
+training = dat[year(dat$date) < 2012,]
+testing = dat[year(dat$date) > 2011,]
+tstrain = ts(training$visitsTumblr)
+```
+
+> Fit a model using the bats() function in the forecast package to the training time series.
+> Then forecast this model for the remaining time points.
+> For how many of the testing points is the true value within the 95% prediction interval bounds?
+
+```{r}
+tsmodel = bats(tstrain)
+f = forecast(tsmodel, nrow(testing))
+plot(f)
+lines(ts(testing$visitsTumblr, start = 366), col= "red")
+accuracy(f, ts(testing$visitsTumblr, start = 366))
+```
+
+
+***Answer:***
+
+> 96%
+
+### Question 5
+
+> Load the concrete data with the commands:
+
+```{r}
+set.seed(3523)
+library(AppliedPredictiveModeling)
+data(concrete)
+
+inTrain = createDataPartition(concrete$CompressiveStrength, p = 3/4)[[1]]
+training = concrete[ inTrain,]
+testing = concrete[-inTrain,]
+```
+
+> Set the seed to 325 and fit a support vector machine using the e1071 package to predict Compressive Strength using the default settings.
+> Predict on the testing set.
+> What is the RMSE?
+
+```{r}
+library(e1071)
+set.seed(325)
+model = svm(CompressiveStrength ~ ., data = training)
+pred = predict(model, newdata = testing)
+accuracy(pred, testing$CompressiveStrength)
+```
+
+*** Answer:***
+
+> 6.715009
+
+```{r}
+library(quantmod)
+from.dat = as.Date("01/01/08", format = "%m/%d/%y")
+to.dat = as.Date("12/31/13", format = "%m/%d/%y")
+getSymbols("GOOG", src = "google", from = from.dat, to = to.dat)
+mGoog = to.monthly(OHLC(GOOG))
+googOpen = Op(mGoog)
+tsGoog = ts(googOpen, frequency = 12)
+plot(tsGoog, xlab = "Years+1", ylab = "GOOG")
+plot(decompose(tsGoog), xlab="Years+1")
+```
+
